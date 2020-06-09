@@ -3,8 +3,8 @@ import re
 import time
 import requests
 
-DELAY = 0.25
-SKIP = 0
+DELAY = 0.25 # number of seconds to wait between requests
+SKIP = 0 # number of lines in password file to skip if prior run failed
 HOST = "http://127.0.0.1"  # change to the appropriate URL
 
 LOGIN_URL = HOST + "/admin/login"
@@ -22,7 +22,7 @@ print("Read {} passwords".format(size))
 i = 0
 for password in wordlist:
     i += 1
-    if i < SKIP:
+    if i < SKIP: # skip over unwanted lines if necessary
         continue
     session = requests.Session()
     login_page = session.get(LOGIN_URL)

